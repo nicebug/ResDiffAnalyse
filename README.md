@@ -9,3 +9,7 @@ use unity3d's log file to finger out the additional ,modified or deleted resourc
 输出结果在result目录下面
 
 同时可以接受命令参数运行 ResDiffAnalyse.exe  旧版本log文件路径 新版本log文件路径  输出结果目录路径
+
+# To do
+1. 优化参数解析，不再写死
+2. 文件属性获取
