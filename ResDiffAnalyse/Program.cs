@@ -153,7 +153,7 @@ namespace ResDiffAnalyse
                                 break;
                             }
                         }
-                        //
+                        //不存在就将其放入列表
                         if (isExisted == false)
                         {
                             oldVersionResInfos.Add(res);

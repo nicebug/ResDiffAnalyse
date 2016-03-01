@@ -7,6 +7,7 @@ namespace ResDiffAnalyse
 {
     public class CompareBySize : IComparer<ResInfo>
     {
+        //排序
         public int Compare(ResInfo x, ResInfo y)
         {
             return y.filesize.CompareTo(x.filesize);
