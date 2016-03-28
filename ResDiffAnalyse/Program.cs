@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using System.Drawing;
+
 namespace ResDiffAnalyse
 {
     class Program
@@ -17,15 +19,21 @@ namespace ResDiffAnalyse
         //第3个  输出结果文件Path
         static void Main(string[] args)
         {
+            ///// test bitmap 
+            //string png = @"E:\DevWork\WeSpeedCheckTool\ResDiffAnalyse\DDS\xptools_win_15-3\Car_TaurusR_Paint_S_Game.png";
+            //Bitmap bit = new Bitmap(png);
+
 
             string oldLogFilePath;
             string newLogFilePath;
             string resultFileDirPath;
-            if (args.Length == 3)
+            string unityProjDirName = null;
+            if (args.Length == 4)
             {
                 oldLogFilePath = args[0];
                 newLogFilePath = args[1];
                 resultFileDirPath = args[2];
+                unityProjDirName = args[3];
             }
             else
             {
@@ -123,6 +131,102 @@ namespace ResDiffAnalyse
             //写小计
             WriteSizeInfoFile(resultFileDirPath);
             Console.WriteLine("---------done----------");
+
+            // 检查PNG是否符合规范
+            Console.WriteLine("检查资源是否符合规范");
+            //string dir = "";
+            if (unityProjDirName != null)
+            {
+                CheckPNG(unityProjDirName);
+            }
+        }
+
+        /// <summary>
+        /// 目前车的贴图规范
+        /// wheel，detail，logo，mask,glass贴图128*128,
+        /// paint贴图512*512，
+        /// detail贴图会根据引擎效果决定是用256还是128
+        /// </summary>
+        /// <param name="unityProjDirName">工程目录名</param>
+        public static void CheckPNG(string unityProjDirName)
+        {
+            string path = System.Environment.CurrentDirectory + "/result/add_png.txt";
+            if (!File.Exists(path))
+            {
+                return;
+            }
+            List<string> errorlist = new List<string>();
+            List<string> pnglist = new List<string>();
+            var lines = File.ReadAllLines(path);
+            char[] delimiter = { ' ', '\t' };
+            foreach (var line in lines)
+            {
+                var info = line.Split(delimiter, StringSplitOptions.RemoveEmptyEntries);
+                if (info.Length == 4)
+                {
+                    pnglist.Add(unityProjDirName + "/" + info[info.Length - 1]);
+                }
+            }
+
+            // 新增的资源png为空，则返回
+            if (pnglist == null)
+            {
+                return;
+            }
+            foreach (var png in pnglist)
+            {
+                if (png.IndexOf(@"car_", StringComparison.OrdinalIgnoreCase) < 0)
+                {
+                    continue;
+                }
+                else
+                {
+                    if (png.IndexOf(@"wheel", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        /// wheel，detail，logo，mask,glass贴图128*128,
+                        /// todo
+                        Bitmap bit = new Bitmap(png);
+                        if (bit.Height != 128 && bit.Width != 128)
+                        {
+                            errorlist.Add(png);
+                        }
+                    }
+                    else if (png.IndexOf(@"paint", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        /// paint贴图512*512，
+                        Bitmap bit = new Bitmap(png);
+                        if (bit.Height != 512 && bit.Width != 512)
+                        {
+                            errorlist.Add(png);
+                        }
+                    }
+                    else if (png.IndexOf(@"detail", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        /// detail贴图会根据引擎效果决定是用256还是128
+                        Bitmap bit = new Bitmap(png);
+                        if ((bit.Height != 256 && bit.Height != 128) || (bit.Width != 512 && bit.Width != 128))
+                        {
+                            errorlist.Add(png);
+                        }
+                    }
+                }
+            }
+            //errorlist.Add("----------------------不符合规范的资源列表---------------------");
+            var errorfile = System.Environment.CurrentDirectory + "errorlist.txt";
+            //if (File.Exists(errorfile))
+            //{
+            //    File.Delete(errorfile);
+            //}
+            StreamWriter sw = new StreamWriter(errorfile, false);
+            sw.WriteLine("----------------------不符合规范的资源列表---------------------");
+            foreach (string error in errorlist)
+            {
+                sw.WriteLine(error);
+            }
+            sw.Flush();
+            sw.Close();
+
+            //return errorlist;
         }
 
         //处理旧版本日志文件获取旧版本资源列表
