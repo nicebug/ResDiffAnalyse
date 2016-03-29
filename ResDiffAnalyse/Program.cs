@@ -130,15 +130,15 @@ namespace ResDiffAnalyse
             DiffOutNewVersionNotExistResInfos(resultFileDirPath);
             //写小计
             WriteSizeInfoFile(resultFileDirPath);
-            Console.WriteLine("---------done----------");
-
+            
             // 检查PNG是否符合规范
-            Console.WriteLine("检查资源是否符合规范");
+            Console.WriteLine("------------检查资源是否符合规范----------");
             //string dir = "";
             if (unityProjDirName != null)
             {
                 CheckPNG(unityProjDirName);
             }
+            Console.WriteLine("---------done----------");
         }
 
         /// <summary>
