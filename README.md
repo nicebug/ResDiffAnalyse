@@ -1,4 +1,5 @@
 # ResDiffAnalyse
+[![Build Status](https://travis-ci.org/nicebug/ResDiffAnalyse.svg?branch=master)](https://travis-ci.org/nicebug/ResDiffAnalyse)
 use unity3d's log file to finger out the additional ,modified or deleted resources between two versions
 
 # How to use
