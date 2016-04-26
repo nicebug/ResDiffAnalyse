@@ -2,5 +2,5 @@ language: csharp
 solution: ResDiffAnalyse.sln
 install:
   - nuget # lets get version number
-  - nuget restore FindReferenceWithRoslyn.sln -Verbosity detailed
-  - nuget update FindReferenceWithRoslyn.sln -Verbosity detailed
+  - nuget restore ResDiffAnalyse.sln -Verbosity detailed
+  - nuget update ResDiffAnalyse.sln -Verbosity detailed
