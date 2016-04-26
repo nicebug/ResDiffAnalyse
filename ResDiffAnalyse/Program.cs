@@ -57,9 +57,8 @@ namespace ResDiffAnalyse
             GetNewResInfo(newLogFilePath);
             newVersionResInfos.Sort(new CompareBySize());
             Console.WriteLine("do out-------------->");
-            sizeInfos = new List<string>();
+            sizeInfos = new List<string> {"-------------------新版本新增信息小计-------------------------------"};
             //
-            sizeInfos.Add("-------------------新版本新增信息小计-------------------------------");
             DiffOutNewAddResInfos(resultFileDirPath);
             //新旧对比-----------
             DiffOutNewAddResInfoBySuffix(".png", resultFileDirPath);
@@ -155,8 +154,8 @@ namespace ResDiffAnalyse
             {
                 return;
             }
-            List<string> errorlist = new List<string>();
-            List<string> pnglist = new List<string>();
+            var errorlist = new List<string>();
+            var pnglist = new List<string>();
             var lines = File.ReadAllLines(path);
             char[] delimiter = { ' ', '\t' };
             foreach (var line in lines)
@@ -168,11 +167,6 @@ namespace ResDiffAnalyse
                 }
             }
 
-            // 新增的资源png为空，则返回
-            if (pnglist == null)
-            {
-                return;
-            }
             foreach (var png in pnglist)
             {
                 if (png.IndexOf(@"car_", StringComparison.OrdinalIgnoreCase) < 0)
@@ -183,8 +177,8 @@ namespace ResDiffAnalyse
                 {
                     if (png.IndexOf(@"wheel", StringComparison.OrdinalIgnoreCase) >= 0)
                     {
-                        /// wheel，detail，logo，mask,glass贴图128*128,
-                        /// todo
+                        // wheel，detail，logo，mask,glass贴图128*128,
+                        // todo
                         Bitmap bit = new Bitmap(png);
                         if (bit.Height != 128 && bit.Width != 128)
                         {
@@ -193,7 +187,7 @@ namespace ResDiffAnalyse
                     }
                     else if (png.IndexOf(@"paint", StringComparison.OrdinalIgnoreCase) >= 0)
                     {
-                        /// paint贴图512*512，
+                        // paint贴图512*512，
                         Bitmap bit = new Bitmap(png);
                         if (bit.Height != 512 && bit.Width != 512)
                         {
@@ -202,7 +196,7 @@ namespace ResDiffAnalyse
                     }
                     else if (png.IndexOf(@"detail", StringComparison.OrdinalIgnoreCase) >= 0)
                     {
-                        /// detail贴图会根据引擎效果决定是用256还是128
+                        // detail贴图会根据引擎效果决定是用256还是128
                         Bitmap bit = new Bitmap(png);
                         if ((bit.Height != 256 && bit.Height != 128) || (bit.Width != 512 && bit.Width != 128))
                         {
@@ -219,7 +213,7 @@ namespace ResDiffAnalyse
             //}
             StreamWriter sw = new StreamWriter(errorfile, false);
             sw.WriteLine("----------------------不符合规范的资源列表---------------------");
-            foreach (string error in errorlist)
+            foreach (var error in errorlist)
             {
                 sw.WriteLine(error);
             }
@@ -238,37 +232,38 @@ namespace ResDiffAnalyse
             string line;
             while ((line = file.ReadLine()) != null)
             {
-                if (line.Contains("Assets/") && (!line.Contains("warning")) && (!line.Contains("Filename:"))
-                    && (!line.Contains("\"")))
+                if (!line.Contains("Assets/") || (line.Contains("warning")) || (line.Contains("Filename:")) ||
+                    (line.Contains("\"")))
                 {
-                    ResInfo res = new ResInfo(line);
-                    if (res.isRealRes)
+                    continue;
+                }
+                ResInfo res = new ResInfo(line);
+                if (res.IsRealRes)
+                {
+                    //过滤
+                    bool isExisted = false;
+                    ResInfo old = null;
+                    for (int j = 0; j < oldVersionResInfos.Count; j++)
                     {
-                        //过滤
-                        bool isExisted = false;
-                        ResInfo old = null;
-                        for (int j = 0; j < oldVersionResInfos.Count; j++)
+                        ResInfo rr = oldVersionResInfos[j];
+                        if (string.Equals(rr.ResPath, res.ResPath))
                         {
-                            ResInfo rr = oldVersionResInfos[j];
-                            if (string.Equals(rr.resPath, res.resPath))
-                            {
-                                isExisted = true;
-                                old = rr;
-                                break;
-                            }
+                            isExisted = true;
+                            old = rr;
+                            break;
                         }
-                        //不存在就将其放入列表
-                        if (isExisted == false)
+                    }
+                    //不存在就将其放入列表
+                    if (isExisted == false)
+                    {
+                        oldVersionResInfos.Add(res);
+                    }
+                    else
+                    {
+                        //比较大小 记录最大的
+                        if ((old.GetSize() < res.GetSize()))
                         {
-                            oldVersionResInfos.Add(res);
-                        }
-                        else
-                        {
-                            //比较大小 记录最大的
-                            if ((old != null) && (old.GetSize() < res.GetSize()))
-                            {
-                                old.logStr = line;
-                            }
+                            old.LogStr = line;
                         }
                     }
                 }
@@ -286,40 +281,39 @@ namespace ResDiffAnalyse
             string line;
             while ((line = file.ReadLine()) != null)
             {
-                if (line.Contains("Assets/") && (!line.Contains("warning")) && (!line.Contains("Filename:"))
-                    && (!line.Contains("\"")))
+                if (!line.Contains("Assets/") || (line.Contains("warning")) || (line.Contains("Filename:")) ||
+                    (line.Contains("\"")))
                 {
-                    ResInfo res = new ResInfo(line);
-                    if (res.isRealRes)
+                    continue;
+                }
+                ResInfo res = new ResInfo(line);
+                if (res.IsRealRes)
+                {
+                    //过滤
+                    bool isExisted = false;
+                    ResInfo old = null;
+                    foreach (ResInfo rr in newVersionResInfos)
                     {
-                        //过滤
-                        bool isExisted = false;
-                        ResInfo old = null;
-                        for (int j = 0; j < newVersionResInfos.Count; j++)
+                        if (string.Equals(rr.ResPath, res.ResPath))
                         {
-                            ResInfo rr = newVersionResInfos[j];
-                            if (string.Equals(rr.resPath, res.resPath))
-                            {
-                                isExisted = true;
-                                old = rr;
-                                break;
-                            }
-                        }
-                        //
-                        if (isExisted == false)
-                        {
-                            newVersionResInfos.Add(res);
-                        }
-                        else
-                        {
-                            //比较大小 记录最大的
-                            if ((old != null) && (old.GetSize() < res.GetSize()))
-                            {
-                                old.logStr = line;
-                            }
+                            isExisted = true;
+                            old = rr;
+                            break;
                         }
                     }
-
+                    //
+                    if (isExisted == false)
+                    {
+                        newVersionResInfos.Add(res);
+                    }
+                    else
+                    {
+                        //比较大小 记录最大的
+                        if ((old.GetSize() < res.GetSize()))
+                        {
+                            old.LogStr = line;
+                        }
+                    }
                 }
             }
             file.Close();
@@ -339,7 +333,7 @@ namespace ResDiffAnalyse
                 for (int j = 0; j < oldVersionResInfos.Count; j++)
                 {
                     ResInfo oldInfo = oldVersionResInfos[j];
-                    if (string.Equals(newInfo.resPath, oldInfo.resPath))
+                    if (string.Equals(newInfo.ResPath, oldInfo.ResPath))
                     {
                         isFind = true;
                         break;
@@ -361,7 +355,7 @@ namespace ResDiffAnalyse
             StreamWriter file = new StreamWriter(outFilePath);
             foreach (ResInfo info in newAddResInfos)
             {
-                file.WriteLine(info.logStr);
+                file.WriteLine(info.LogStr);
                 
                 totalSize += info.GetSize();
             }
@@ -382,11 +376,7 @@ namespace ResDiffAnalyse
             for (int i = 0; i < newAddResInfos.Count; i++)
             {
                 ResInfo newInfo = newAddResInfos[i];
-                bool isFind = false;
-                if (newInfo.resPath.Contains(suffix))
-                {
-                    isFind = true;
-                }
+                bool isFind = newInfo.ResPath.Contains(suffix);
                 if (isFind == true)
                 {
                     resinfos.Add(newInfo);
@@ -414,7 +404,7 @@ namespace ResDiffAnalyse
             StreamWriter file = new StreamWriter(outFilePath);
             foreach (ResInfo info in resinfos)
             {
-                file.WriteLine(info.logStr);
+                file.WriteLine(info.LogStr);
                 //
                 totalSize += info.GetSize();
             }
@@ -450,19 +440,17 @@ namespace ResDiffAnalyse
         public static void DiffOutChangedSizeResInfo(string outDir)
         {
             List<ResInfo> changedInfos = new List<ResInfo>();
-            for (int i = 0; i < newVersionResInfos.Count; i++)
+            foreach (ResInfo newInfo in newVersionResInfos)
             {
-                ResInfo newInfo = newVersionResInfos[i];
                 bool isFind = false;
-                for (int j = 0; j < oldVersionResInfos.Count; j++)
+                foreach (ResInfo oldInfo in oldVersionResInfos)
                 {
-                    ResInfo oldInfo = oldVersionResInfos[j];
-                    if (string.Equals(newInfo.resPath, oldInfo.resPath))
+                    if (string.Equals(newInfo.ResPath, oldInfo.ResPath))
                     {
                         //不等于
                         if (Math.Abs(newInfo.GetSize() - oldInfo.GetSize()) >= 0.1f)
                         {
-                            newInfo.oldSize = oldInfo.GetSize();
+                            newInfo.OldSize = oldInfo.GetSize();
                             isFind = true;
                             break;
                         }
@@ -482,8 +470,8 @@ namespace ResDiffAnalyse
             StreamWriter file = new StreamWriter(outFilePath);
             foreach (ResInfo info in changedInfos)
             {
-                file.WriteLine(info.resPath + "|new:|" + info.GetSize() + "|old:|" + info.oldSize);
-                totalChangeSize += (info.GetSize() - info.oldSize);
+                file.WriteLine(info.ResPath + "|new:|" + info.GetSize() + "|old:|" + info.OldSize);
+                totalChangeSize += (info.GetSize() - info.OldSize);
             }
             string end = "修改原版本资源文件" + changedInfos.Count.ToString() + "个；修改变化总大小(kb):" + totalChangeSize.ToString();
             file.WriteLine("===================================================");
@@ -497,19 +485,17 @@ namespace ResDiffAnalyse
         public static void DiffOutChangedResInfoBySuffix(string suffix, string outDir)
         {
             List<ResInfo> changedInfos = new List<ResInfo>();
-            for (int i = 0; i < newVersionResInfos.Count; i++)
+            foreach (ResInfo newInfo in newVersionResInfos)
             {
-                ResInfo newInfo = newVersionResInfos[i];
                 bool isFind = false;
-                for (int j = 0; j < oldVersionResInfos.Count; j++)
+                foreach (ResInfo oldInfo in oldVersionResInfos)
                 {
-                    ResInfo oldInfo = oldVersionResInfos[j];
-                    if (string.Equals(newInfo.resPath, oldInfo.resPath))
+                    if (string.Equals(newInfo.ResPath, oldInfo.ResPath))
                     {
                         //不等于 后缀相同
-                        if ((Math.Abs(newInfo.GetSize() - oldInfo.GetSize()) >= 0.1f)&&(oldInfo.resPath.Contains(suffix)))
+                        if ((Math.Abs(newInfo.GetSize() - oldInfo.GetSize()) >= 0.1f)&&(oldInfo.ResPath.Contains(suffix)))
                         {
-                            newInfo.oldSize = oldInfo.GetSize();
+                            newInfo.OldSize = oldInfo.GetSize();
                             isFind = true;
                             break;
                         }
@@ -539,8 +525,8 @@ namespace ResDiffAnalyse
             StreamWriter file = new StreamWriter(outFilePath);
             foreach (ResInfo info in changedInfos)
             {
-                file.WriteLine(info.resPath + "|new:|" + info.GetSize() + "|old:|" + info.oldSize);
-                totalChangeSize += (info.GetSize() - info.oldSize);
+                file.WriteLine(info.ResPath + "|new:|" + info.GetSize() + "|old:|" + info.OldSize);
+                totalChangeSize += (info.GetSize() - info.OldSize);
             }
             string end = "修改原版本"+suffix+"资源文件" + changedInfos.Count.ToString() + "个；修改变化总大小(kb):" + totalChangeSize.ToString();
             file.WriteLine("===================================================");
@@ -555,14 +541,13 @@ namespace ResDiffAnalyse
         public static void DiffOutNewVersionNotExistResInfos(string outDir)
         {
             List<ResInfo> notExistList=new List<ResInfo>();
-            for(int i=0;i<oldVersionResInfos.Count;i++){
-                ResInfo old=oldVersionResInfos[i];
-
+            foreach (ResInfo old in oldVersionResInfos)
+            {
                 //新的里面去找 还存在不
                 bool isfind=false;
-                for(int j=0;j<newVersionResInfos.Count;j++){
-                    ResInfo newRes=newVersionResInfos[j];
-                    if(string.Equals(old.resPath,newRes.resPath)){
+                foreach (ResInfo newRes in newVersionResInfos)
+                {
+                    if(string.Equals(old.ResPath,newRes.ResPath)){
                         isfind=true;
                         break;
                     }
@@ -581,7 +566,7 @@ namespace ResDiffAnalyse
             StreamWriter file = new StreamWriter(outFilePath);
             foreach (ResInfo info in notExistList)
             {
-                file.WriteLine(info.logStr);
+                file.WriteLine(info.LogStr);
                 totalChangeSize += info.GetSize();
             }
             string end = "原版本资源文件清理" + notExistList.Count.ToString() + "个；清理掉总大小(kb):" + totalChangeSize.ToString();
@@ -625,7 +610,7 @@ namespace ResDiffAnalyse
             StreamWriter file = new StreamWriter(outFilePath);
             foreach (ResInfo info in newVersionResInfos)
             {
-                file.WriteLine(info.logStr);
+                file.WriteLine(info.LogStr);
                 //
                 totalSize += info.GetSize();
             }
@@ -646,11 +631,7 @@ namespace ResDiffAnalyse
             for (int i = 0; i < newVersionResInfos.Count; i++)
             {
                 ResInfo newInfo = newVersionResInfos[i];
-                bool isFind = false;
-                if (newInfo.resPath.Contains(suffix))
-                {
-                    isFind = true;
-                }
+                bool isFind = newInfo.ResPath.Contains(suffix);
                 if (isFind == true)
                 {
                     resinfos.Add(newInfo);
@@ -676,7 +657,7 @@ namespace ResDiffAnalyse
             StreamWriter file = new StreamWriter(outFilePath);
             foreach (ResInfo info in resinfos)
             {
-                file.WriteLine(info.logStr);
+                file.WriteLine(info.LogStr);
                 //
                 totalSize += info.GetSize();
             }
