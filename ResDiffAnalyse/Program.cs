@@ -40,6 +40,7 @@ namespace ResDiffAnalyse
                 oldLogFilePath = System.Environment.CurrentDirectory + "/oldversionlog.txt";
                 newLogFilePath = System.Environment.CurrentDirectory + "/newversionlog.txt";
                 resultFileDirPath = System.Environment.CurrentDirectory + "/result";
+                unityProjDirName = @"E:\DailyWork\WeSpeed\Code\trunk\Client\UnityProj";
                 if (!Directory.Exists(resultFileDirPath))
                 {
                     Directory.CreateDirectory(resultFileDirPath);
@@ -175,12 +176,43 @@ namespace ResDiffAnalyse
                 }
                 else
                 {
+                    var bit = new Bitmap(png);
                     if (png.IndexOf(@"wheel", StringComparison.OrdinalIgnoreCase) >= 0)
                     {
                         // wheel，detail，logo，mask,glass贴图128*128,
                         // todo
-                        Bitmap bit = new Bitmap(png);
-                        if (bit.Height != 128 && bit.Width != 128)
+                        //Bitmap bit = new Bitmap(png);
+                        if (bit.Height > 128 || bit.Width > 128)
+                        {
+                            errorlist.Add(png);
+                        }
+                    }
+                    else if (png.IndexOf(@"logo", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        // wheel，detail，logo，mask,glass贴图128*128,
+                        // todo
+                        //Bitmap bit = new Bitmap(png);
+                        if (bit.Height > 128 || bit.Width > 128)
+                        {
+                            errorlist.Add(png);
+                        }
+                    }
+                    else if (png.IndexOf(@"mask", StringComparison.OrdinalIgnoreCase) >=0 && png.IndexOf(@"paint", StringComparison.OrdinalIgnoreCase) < 0)
+                    {
+                        // wheel，detail，logo，mask,glass贴图128*128,
+                        // todo
+                        //Bitmap bit = new Bitmap(png);
+                        if (bit.Height > 128 || bit.Width > 128)
+                        {
+                            errorlist.Add(png);
+                        }
+                    }
+                    else if (png.IndexOf(@"glass", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        // wheel，detail，logo，mask,glass贴图128*128,
+                        // todo
+                        //Bitmap bit = new Bitmap(png);
+                        if (bit.Height > 128 || bit.Width > 128)
                         {
                             errorlist.Add(png);
                         }
@@ -188,8 +220,8 @@ namespace ResDiffAnalyse
                     else if (png.IndexOf(@"paint", StringComparison.OrdinalIgnoreCase) >= 0)
                     {
                         // paint贴图512*512，
-                        Bitmap bit = new Bitmap(png);
-                        if (bit.Height != 512 && bit.Width != 512)
+                        //Bitmap bit = new Bitmap(png);
+                        if (bit.Height > 512 || bit.Width > 512)
                         {
                             errorlist.Add(png);
                         }
@@ -197,8 +229,8 @@ namespace ResDiffAnalyse
                     else if (png.IndexOf(@"detail", StringComparison.OrdinalIgnoreCase) >= 0)
                     {
                         // detail贴图会根据引擎效果决定是用256还是128
-                        Bitmap bit = new Bitmap(png);
-                        if ((bit.Height != 256 && bit.Height != 128) || (bit.Width != 512 && bit.Width != 128))
+                        //Bitmap bit = new Bitmap(png);
+                        if (bit.Height > 256 || bit.Height > 256)
                         {
                             errorlist.Add(png);
                         }
@@ -206,7 +238,7 @@ namespace ResDiffAnalyse
                 }
             }
             //errorlist.Add("----------------------不符合规范的资源列表---------------------");
-            var errorfile = System.Environment.CurrentDirectory + "errorlist.txt";
+            var errorfile = System.Environment.CurrentDirectory + "/errorlist.txt";
             //if (File.Exists(errorfile))
             //{
             //    File.Delete(errorfile);
